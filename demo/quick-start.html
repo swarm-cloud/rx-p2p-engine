@@ -1,0 +1,49 @@
+
+<!DOCTYPE html>
+<html>
+<head>
+    <script src="https://cdn.jsdelivr.net/npm/rx-player@4.0.0/dist/rx-player.min.js"></script>
+    <script src="../dist/rx-p2p-engine.min.js"></script>
+</head>
+<body>
+<video id="videoplayer" width="854" height="480" controls></video>
+<p id="version"></p>
+<h3>p2p info:</h3>
+<p id="peers"></p>
+<p id="info"></p>
+<script>
+    document.querySelector('#version').innerText = `p2p version: ${P2pEngineRxPlayer.version}`;
+    document.addEventListener("DOMContentLoaded", function () {
+        var videoSource = "https://dash.akamaized.net/akamai/test/caption_test/ElephantsDream/elephants_dream_480p_heaac5_1.mpd";
+
+        var rxConfig = {
+            url: videoSource,
+            transport: "dash",
+            autoPlay: true,
+        }
+
+        const rxPlayer = new RxPlayer({
+            videoElement: document.getElementById("videoplayer")
+        });
+
+        var engine = new P2pEngineRxPlayer(rxPlayer, {
+            logLevel: 'debug',
+            // trackerZone: 'hk',        // if using Hongkong tracker
+            // trackerZone: 'us',        // if using USA tracker
+            // token: YOUR_TOKEN
+        })
+        engine.on('stats', function (stats) {
+            var total = stats.totalHTTPDownloaded + stats.totalP2PDownloaded;
+            document.querySelector('#info').innerText = `p2p ratio: ${Math.round(stats.totalP2PDownloaded/total*100)}%   saved traffic: ${Math.round(stats.totalP2PDownloaded)}KB upload: ${Math.round(stats.totalP2PUploaded)}KB`;
+        })
+
+        engine.on('peers', function (peers) {
+            document.querySelector('#peers').innerText = `peers: ${peers.length}`;
+        })
+
+        rxPlayer.loadVideo(rxConfig);
+
+    });
+</script>
+<body>
+</html>
